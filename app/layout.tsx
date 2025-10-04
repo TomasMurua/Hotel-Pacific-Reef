@@ -2,6 +2,7 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AuthProvider } from "@/components/auth-provider";
 import { Suspense } from "react";
 import "./globals.css";
@@ -31,6 +32,7 @@ export default function RootLayout({
           <AuthProvider>{children}</AuthProvider>
         </Suspense>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
