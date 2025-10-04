@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DatePicker } from "@/components/ui/date-picker";
+import { WorkingDatePicker as DatePicker } from "@/components/ui/working-date-picker";
 import {
   Select,
   SelectContent,
@@ -29,15 +29,22 @@ export function SearchWidget({
   const [checkOut, setCheckOut] = useState<Date>();
   const [adults, setAdults] = useState("2");
   const [children, setChildren] = useState("0");
-  const [roomType, setRoomType] = useState("Any kind of room");
+  const [roomType, setRoomType] = useState("Cualquier tipo de habitación");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSearch = async () => {
     if (!checkIn || !checkOut) {
-      alert("Por favor seleccione las fechas de entrada y salida");
+      setError("Por favor seleccione las fechas de entrada y salida");
       return;
     }
 
+    if (checkOut <= checkIn) {
+      setError("La fecha de salida debe ser posterior a la fecha de entrada");
+      return;
+    }
+
+    setError("");
     setIsLoading(true);
 
     // Simulate search delay
@@ -48,7 +55,7 @@ export function SearchWidget({
       checkOut: checkOut.toISOString(),
       adults,
       children,
-      ...(roomType !== "Any kind of room" && { roomType }),
+      ...(roomType !== "Cualquier tipo de habitación" && { roomType }),
     });
 
     router.push(`/rooms?${searchParams.toString()}`);
@@ -73,10 +80,16 @@ export function SearchWidget({
         )}
       >
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Check-in</label>
+          <label className="text-sm font-medium text-gray-700">Entrada</label>
           <DatePicker
             date={checkIn}
-            onDateChange={setCheckIn}
+            onDateChange={(date) => {
+              setCheckIn(date);
+              // Clear check-out if it's before or equal to the new check-in date
+              if (date && checkOut && checkOut <= date) {
+                setCheckOut(undefined);
+              }
+            }}
             placeholder="Seleccionar fecha"
             className="w-full"
           />
@@ -90,6 +103,11 @@ export function SearchWidget({
             placeholder="Seleccionar fecha"
             className="w-full"
             disabled={!checkIn}
+            minDate={
+              checkIn
+                ? new Date(checkIn.getTime() + 24 * 60 * 60 * 1000)
+                : undefined
+            }
           />
         </div>
 
@@ -127,7 +145,7 @@ export function SearchWidget({
 
         <div className={cn("space-y-2", isHero && "md:col-span-1")}>
           <label className="text-sm font-medium text-gray-700">
-            {isHero ? "Search" : "Tipo de Habitación"}
+            {isHero ? "Buscar" : "Tipo de Habitación"}
           </label>
           {isHero ? (
             <Button
@@ -151,10 +169,10 @@ export function SearchWidget({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Cualquier tipo de habitación">
-                  Any kind of room
+                  Cualquier tipo de habitación
                 </SelectItem>
-                <SelectItem value="Room_Type 1">Standard room</SelectItem>
-                <SelectItem value="Room_Type 2">Deluxe room</SelectItem>
+                <SelectItem value="Room_Type 1">Habitación Estándar</SelectItem>
+                <SelectItem value="Room_Type 2">Habitación Deluxe</SelectItem>
                 <SelectItem value="Room_Type 3">Suite Junior</SelectItem>
                 <SelectItem value="Room_Type 4">Suite Premium</SelectItem>
               </SelectContent>
@@ -181,6 +199,13 @@ export function SearchWidget({
           </div>
         )}
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
     </Card>
   );
 }
