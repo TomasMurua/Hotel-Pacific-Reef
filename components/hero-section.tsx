@@ -4,7 +4,7 @@ import { SearchWidget } from "./search-widget"
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center">
+    <section className="relative h-[calc(100dvh-4rem)] flex items-center justify-center">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img

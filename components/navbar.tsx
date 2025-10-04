@@ -38,10 +38,10 @@ export function Navbar() {
   const navItems = [
     { label: "Home", href: "/" },
     { label: "Rooms", href: "/rooms" },
-    { label: "Restaurant", href: "/dining" },
-    { label: "Spa", href: "/spa" },
-    { label: "Events", href: "/events" },
-    { label: "Contact", href: "/contact" },
+    { label: "Restaurant", href: "#" },
+    { label: "Spa", href: "#" },
+    { label: "Events", href: "#" },
+    { label: "Contact", href: "#" },
   ];
 
   return (
