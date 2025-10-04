@@ -44,10 +44,7 @@ function RoomsPageContent() {
         setRooms(roomData);
         setFilteredRooms(roomData);
 
-        // Set initial room type filter if provided in search params
-        if (roomType && roomType !== "Any room type") {
-          setSelectedRoomType(roomType);
-        }
+        if (roomType) setSelectedRoomType(roomType);
       } catch (error) {
         console.error("Error fetching rooms:", error);
       } finally {
@@ -67,9 +64,10 @@ function RoomsPageContent() {
       (room) => room.price >= priceRange[0] && room.price <= priceRange[1]
     );
 
-    // Room type filter
+    // Room type filter with normalization (handles "Room_Type X" vs "Room X")
+    const normalize = (s: string) => s.replace(/^Room_Type\s*/, "Room ").replace(/_/g, " ").trim();
     if (selectedRoomType !== "All Types") {
-      filtered = filtered.filter((room) => room.name === selectedRoomType);
+      filtered = filtered.filter((room) => normalize(room.name) === normalize(selectedRoomType));
     }
 
     // Amenities filter

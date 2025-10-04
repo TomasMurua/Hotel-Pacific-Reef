@@ -70,9 +70,11 @@ export async function getRoomTypes(): Promise<RoomType[]> {
       ...availableImages.filter((_, i) => i !== primaryIndex),
     ];
 
+    const displayName = roomType.replace(/^Room_Type\s*/, "Room ");
+
     return {
       id: `room-${index + 1}`,
-      name: roomType,
+      name: displayName,
       capacity: {
         adults: maxAdults || 2,
         children: maxChildren || 2,
