@@ -1,12 +1,12 @@
 {
-  "buildCommand": "npm run build",
   "installCommand": "npm install --legacy-peer-deps",
-  "functions": {
-    "app/**/*.tsx": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "buildCommand": "npm run build",
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=4096"
+  },
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=4096"
+    }
   }
 }
