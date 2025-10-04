@@ -14,6 +14,11 @@ export const metadata: Metadata = {
     "Experience luxury at Hotel Pacific Reef with stunning ocean views, premium amenities, and exceptional service.",
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
