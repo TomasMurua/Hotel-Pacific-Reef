@@ -63,6 +63,13 @@ export async function getRoomTypes(): Promise<RoomType[]> {
     const maxAdults = Math.max(...roomData.map((r) => r.no_of_adults));
     const maxChildren = Math.max(...roomData.map((r) => r.no_of_children));
 
+    const availableImages = ["/room1.jpg", "/room2.jpg", "/room3.jpg"] as const;
+    const primaryIndex = index % availableImages.length;
+    const images = [
+      availableImages[primaryIndex],
+      ...availableImages.filter((_, i) => i !== primaryIndex),
+    ];
+
     return {
       id: `room-${index + 1}`,
       name: roomType,
@@ -72,11 +79,7 @@ export async function getRoomTypes(): Promise<RoomType[]> {
       },
       price: Math.round(avgPrice),
       amenities: ["WiFi", "Air Conditioning", "Room Service", "TV"],
-      images: [
-        `/placeholder.svg?height=300&width=400&query=${roomType} hotel room interior`,
-        `/placeholder.svg?height=300&width=400&query=${roomType} hotel room bathroom`,
-        `/placeholder.svg?height=300&width=400&query=${roomType} hotel room view`,
-      ],
+      images,
       description: `Comfortable ${roomType.toLowerCase()} with modern amenities and elegant design.`,
     };
   });
