@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AreaChart,
   Area,
@@ -15,28 +15,57 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts"
-import { fetchHotelData } from "@/lib/data-service"
-import type { HotelReservation } from "@/lib/types"
+} from "recharts";
+import {
+  getMonthlyRevenueData,
+  getRoomTypePerformance,
+  getGuestDemographics,
+} from "@/lib/data-service";
 
 export function AnalyticsCharts() {
-  const [data, setData] = useState<HotelReservation[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [monthlyData, setMonthlyData] = useState<
+    Array<{ month: string; revenue: number; bookings: number }>
+  >([]);
+  const [roomTypeData, setRoomTypeData] = useState<
+    Array<{
+      roomType: string;
+      revenue: number;
+      bookings: number;
+      avgPrice: number;
+    }>
+  >([]);
+  const [demographicsData, setDemographicsData] = useState<{
+    marketSegments: Array<{
+      segment: string;
+      count: number;
+      percentage: number;
+    }>;
+    repeatedGuests: { repeated: number; new: number };
+    leadTimeDistribution: Array<{ range: string; count: number }>;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const hotelData = await fetchHotelData()
-        setData(hotelData)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+        const [monthly, roomType, demographics] = await Promise.all([
+          getMonthlyRevenueData(),
+          getRoomTypePerformance(),
+          getGuestDemographics(),
+        ]);
 
-    fetchData()
-  }, [])
+        setMonthlyData(monthly);
+        setRoomTypeData(roomType);
+        setDemographicsData(demographics);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -52,163 +81,124 @@ export function AnalyticsCharts() {
           </Card>
         ))}
       </div>
-    )
+    );
   }
 
-  // Process data for charts
-  const monthlyRevenue = data
-    .filter((d) => d.booking_status === "Check-Out")
-    .reduce(
-      (acc, curr) => {
-        const month = `${curr.arrival_year}-${String(curr.arrival_month).padStart(2, "0")}`
-        const revenue = curr.avg_price_per_room * (curr.no_of_weekend_nights + curr.no_of_week_nights)
-        acc[month] = (acc[month] || 0) + revenue
-        return acc
-      },
-      {} as Record<string, number>,
-    )
+  if (!demographicsData) return null;
 
-  const revenueData = Object.entries(monthlyRevenue)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-12)
-    .map(([month, revenue]) => ({
-      month: new Date(month + "-01").toLocaleDateString("en-US", { month: "short", year: "numeric" }),
-      revenue: Math.round(revenue),
-    }))
-
-  const roomTypeRevenue = data
-    .filter((d) => d.booking_status === "Check-Out")
-    .reduce(
-      (acc, curr) => {
-        const revenue = curr.avg_price_per_room * (curr.no_of_weekend_nights + curr.no_of_week_nights)
-        acc[curr.room_type_reserved] = (acc[curr.room_type_reserved] || 0) + revenue
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-
-  const roomRevenueData = Object.entries(roomTypeRevenue).map(([room, revenue]) => ({
-    room: room.replace("Room_Type ", "Room "),
-    revenue: Math.round(revenue),
-  }))
-
-  const marketSegmentData = data.reduce(
-    (acc, curr) => {
-      acc[curr.market_segment_type] = (acc[curr.market_segment_type] || 0) + 1
-      return acc
-    },
-    {} as Record<string, number>,
-  )
-
-  const segmentData = Object.entries(marketSegmentData).map(([segment, count]) => ({
-    segment,
-    count,
-  }))
-
-  const leadTimeData = data
-    .filter((d) => d.lead_time > 0 && d.lead_time < 365)
-    .reduce(
-      (acc, curr) => {
-        const bucket = Math.floor(curr.lead_time / 30) * 30
-        const label = `${bucket}-${bucket + 29} days`
-        acc[label] = (acc[label] || 0) + 1
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-
-  const leadTimeChartData = Object.entries(leadTimeData)
-    .sort(([a], [b]) => Number.parseInt(a) - Number.parseInt(b))
-    .map(([range, count]) => ({
-      range,
-      count,
-    }))
-
-  const COLORS = ["#123332", "#315251", "#FFD9BE", "#64748b", "#334155", "#f8fafc"]
+  const COLORS = [
+    "#123332",
+    "#315251",
+    "#FFD9BE",
+    "#64748b",
+    "#334155",
+    "#f8fafc",
+  ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Monthly Revenue Trend */}
-      <Card className="lg:col-span-2">
+      {/* <Card className="lg:col-span-2">
         <CardHeader>
           <CardTitle>Monthly Revenue Trend</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={revenueData}>
+            <AreaChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, "Revenue"]} />
-              <Area type="monotone" dataKey="revenue" stroke="#123332" fill="#123332" fillOpacity={0.1} />
+              <Tooltip
+                formatter={(value) => [
+                  `$${value.toLocaleString()}`,
+                  "Ingresos",
+                ]}
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#123332"
+                fill="#123332"
+                fillOpacity={0.1}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Revenue by Room Type */}
-      <Card>
+      {/* <Card>
         <CardHeader>
-          <CardTitle>Revenue by Room Type</CardTitle>
+          <CardTitle>Ingresos por Tipo de Habitación</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={roomRevenueData}>
+            <BarChart data={roomTypeData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="room" />
+              <XAxis dataKey="roomType" />
               <YAxis />
-              <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, "Revenue"]} />
+              <Tooltip
+                formatter={(value) => [
+                  `$${value.toLocaleString()}`,
+                  "Ingresos",
+                ]}
+              />
               <Bar dataKey="revenue" fill="#315251" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Market Segment Distribution */}
-      <Card>
+      {/* <Card>
         <CardHeader>
-          <CardTitle>Bookings by Market Segment</CardTitle>
+          <CardTitle>Reservas por Segmento de Mercado</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={segmentData}
+                data={demographicsData.marketSegments}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ segment, percent }) => `${segment} ${(percent * 100).toFixed(0)}%`}
+                label={({ segment, percent }) =>
+                  `${segment} ${(percent * 100).toFixed(0)}%`
+                }
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"
               >
-                {segmentData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {demographicsData.marketSegments.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Lead Time Distribution */}
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle>Booking Lead Time Distribution</CardTitle>
+          <CardTitle>Distribución de Tiempo de Anticipación</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={leadTimeChartData}>
+            <BarChart data={demographicsData.leadTimeDistribution}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="range" />
               <YAxis />
-              <Tooltip formatter={(value) => [`${value}`, "Bookings"]} />
+              <Tooltip formatter={(value) => [`${value}`, "Reservas"]} />
               <Bar dataKey="count" fill="#FFD9BE" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

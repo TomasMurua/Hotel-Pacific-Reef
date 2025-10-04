@@ -92,7 +92,11 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const checkedOutBookings = data.filter(
     (d) => d.booking_status === "Check-Out"
   ).length;
+  const notCanceledBookings = data.filter(
+    (d) => d.booking_status === "Not_Canceled"
+  ).length;
 
+  // Calculate total revenue from completed stays
   const totalRevenue = data
     .filter((d) => d.booking_status === "Check-Out")
     .reduce(
@@ -102,18 +106,38 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       0
     );
 
-  const avgPrice =
-    data.reduce((sum, d) => sum + d.avg_price_per_room, 0) / data.length;
+  // Calculate Average Daily Rate (ADR) from completed stays
+  const completedStays = data.filter((d) => d.booking_status === "Check-Out");
+  const totalRoomNights = completedStays.reduce(
+    (sum, d) => sum + d.no_of_weekend_nights + d.no_of_week_nights,
+    0
+  );
+  const adr = totalRoomNights > 0 ? totalRevenue / totalRoomNights : 0;
 
-  // Assuming 100 total rooms for calculation
-  const totalRooms = 100;
-  const occupiedRooms = checkedOutBookings;
+  // Hotel Pacific Reef has 38 rooms (30 Turista + 8 Premium)
+  const totalRooms = 38;
+
+  // Calculate occupancy rate based on room nights
+  // Assuming average stay length for occupancy calculation
+  const avgStayLength = totalRoomNights / completedStays.length || 0;
+  const totalRoomNightsAvailable = totalRooms * 365; // Assuming 365 days
+  const occupancyRate =
+    totalRoomNightsAvailable > 0
+      ? (totalRoomNights / totalRoomNightsAvailable) * 100
+      : 0;
+
+  // Revenue Per Available Room (RevPAR)
+  const revpar = totalRooms > 0 ? totalRevenue / totalRooms : 0;
+
+  // Cancellation rate
+  const cancellationRate =
+    totalBookings > 0 ? (canceledBookings / totalBookings) * 100 : 0;
 
   return {
-    occupancyRate: (occupiedRooms / totalRooms) * 100,
-    adr: Math.round(avgPrice),
-    revpar: Math.round(totalRevenue / totalRooms),
-    cancellationRate: (canceledBookings / totalBookings) * 100,
+    occupancyRate: Math.min(occupancyRate, 100), // Cap at 100%
+    adr: Math.round(adr),
+    revpar: Math.round(revpar),
+    cancellationRate: Math.round(cancellationRate * 10) / 10, // Round to 1 decimal
     totalRevenue: Math.round(totalRevenue),
     totalBookings,
   };
@@ -127,6 +151,214 @@ export async function getMealPlans(): Promise<string[]> {
 export async function getMarketSegments(): Promise<string[]> {
   const data = await fetchHotelData();
   return [...new Set(data.map((d) => d.market_segment_type))].filter(Boolean);
+}
+
+// New functions for enhanced dashboard analytics
+export async function getMonthlyRevenueData(): Promise<
+  Array<{ month: string; revenue: number; bookings: number }>
+> {
+  const data = await fetchHotelData();
+
+  const monthlyData = data
+    .filter((d) => d.booking_status === "Check-Out")
+    .reduce((acc, curr) => {
+      const month = `${curr.arrival_year}-${String(curr.arrival_month).padStart(
+        2,
+        "0"
+      )}`;
+      const revenue =
+        curr.avg_price_per_room *
+        (curr.no_of_weekend_nights + curr.no_of_week_nights);
+
+      if (!acc[month]) {
+        acc[month] = { revenue: 0, bookings: 0 };
+      }
+      acc[month].revenue += revenue;
+      acc[month].bookings += 1;
+
+      return acc;
+    }, {} as Record<string, { revenue: number; bookings: number }>);
+
+  return Object.entries(monthlyData)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-12) // Last 12 months
+    .map(([month, data]) => ({
+      month: new Date(month + "-01").toLocaleDateString("es-ES", {
+        month: "short",
+        year: "numeric",
+      }),
+      revenue: Math.round(data.revenue),
+      bookings: data.bookings,
+    }));
+}
+
+export async function getRoomTypePerformance(): Promise<
+  Array<{
+    roomType: string;
+    revenue: number;
+    bookings: number;
+    avgPrice: number;
+  }>
+> {
+  const data = await fetchHotelData();
+
+  const roomTypeData = data
+    .filter((d) => d.booking_status === "Check-Out")
+    .reduce((acc, curr) => {
+      const revenue =
+        curr.avg_price_per_room *
+        (curr.no_of_weekend_nights + curr.no_of_week_nights);
+
+      if (!acc[curr.room_type_reserved]) {
+        acc[curr.room_type_reserved] = {
+          revenue: 0,
+          bookings: 0,
+          totalPrice: 0,
+        };
+      }
+      acc[curr.room_type_reserved].revenue += revenue;
+      acc[curr.room_type_reserved].bookings += 1;
+      acc[curr.room_type_reserved].totalPrice += curr.avg_price_per_room;
+
+      return acc;
+    }, {} as Record<string, { revenue: number; bookings: number; totalPrice: number }>);
+
+  return Object.entries(roomTypeData)
+    .map(([roomType, data]) => ({
+      roomType: roomType.replace("Room_Type ", "Habitación "),
+      revenue: Math.round(data.revenue),
+      bookings: data.bookings,
+      avgPrice: Math.round(data.totalPrice / data.bookings),
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+}
+
+export async function getGuestDemographics(): Promise<{
+  marketSegments: Array<{ segment: string; count: number; percentage: number }>;
+  repeatedGuests: { repeated: number; new: number };
+  leadTimeDistribution: Array<{ range: string; count: number }>;
+}> {
+  const data = await fetchHotelData();
+
+  // Market segments
+  const segmentCounts = data.reduce((acc, curr) => {
+    acc[curr.market_segment_type] = (acc[curr.market_segment_type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const totalBookings = data.length;
+  const marketSegments = Object.entries(segmentCounts).map(
+    ([segment, count]) => ({
+      segment,
+      count,
+      percentage: Math.round((count / totalBookings) * 100),
+    })
+  );
+
+  // Repeated guests
+  const repeatedGuests = data.reduce(
+    (acc, curr) => {
+      if (curr.repeated_guest === 1) {
+        acc.repeated += 1;
+      } else {
+        acc.new += 1;
+      }
+      return acc;
+    },
+    { repeated: 0, new: 0 }
+  );
+
+  // Lead time distribution
+  const leadTimeData = data
+    .filter((d) => d.lead_time > 0 && d.lead_time < 365)
+    .reduce((acc, curr) => {
+      let bucket: string;
+      if (curr.lead_time <= 7) bucket = "0-7 días";
+      else if (curr.lead_time <= 30) bucket = "8-30 días";
+      else if (curr.lead_time <= 90) bucket = "31-90 días";
+      else bucket = "91+ días";
+
+      acc[bucket] = (acc[bucket] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const leadTimeDistribution = Object.entries(leadTimeData).map(
+    ([range, count]) => ({
+      range,
+      count,
+    })
+  );
+
+  return {
+    marketSegments,
+    repeatedGuests,
+    leadTimeDistribution,
+  };
+}
+
+export async function getRecentBookings(limit: number = 10): Promise<
+  Array<{
+    bookingId: string;
+    roomType: string;
+    checkIn: string;
+    checkOut: string;
+    guests: number;
+    status: string;
+    revenue: number;
+  }>
+> {
+  const data = await fetchHotelData();
+
+  return data
+    .sort((a, b) => {
+      // Sort by arrival date (most recent first)
+      const dateA = new Date(
+        a.arrival_year,
+        a.arrival_month - 1,
+        a.arrival_date
+      );
+      const dateB = new Date(
+        b.arrival_year,
+        b.arrival_month - 1,
+        b.arrival_date
+      );
+      return dateB.getTime() - dateA.getTime();
+    })
+    .slice(0, limit)
+    .map((booking) => {
+      const checkInDate = new Date(
+        booking.arrival_year,
+        booking.arrival_month - 1,
+        booking.arrival_date
+      );
+      const checkOutDate = new Date(checkInDate);
+      checkOutDate.setDate(
+        checkOutDate.getDate() +
+          booking.no_of_weekend_nights +
+          booking.no_of_week_nights
+      );
+
+      return {
+        bookingId: booking.Booking_ID,
+        roomType: booking.room_type_reserved.replace(
+          "Room_Type ",
+          "Habitación "
+        ),
+        checkIn: checkInDate.toLocaleDateString("es-ES"),
+        checkOut: checkOutDate.toLocaleDateString("es-ES"),
+        guests: booking.no_of_adults + booking.no_of_children,
+        status:
+          booking.booking_status === "Check-Out"
+            ? "Completada"
+            : booking.booking_status === "Canceled"
+            ? "Cancelada"
+            : "Activa",
+        revenue: Math.round(
+          booking.avg_price_per_room *
+            (booking.no_of_weekend_nights + booking.no_of_week_nights)
+        ),
+      };
+    });
 }
 
 // Booking interface
@@ -219,7 +451,7 @@ export async function createBooking(
 
     const { data, error } = await supabase
       .from("hotel_pacific_reef")
-      .insert([reservationData]);
+      .insert([reservationData] as any);
 
     if (error) {
       console.error("Error creating booking:", error);
