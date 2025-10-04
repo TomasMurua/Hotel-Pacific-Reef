@@ -4,7 +4,7 @@ import { SearchWidget } from "./search-widget"
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center">
+    <section className="relative h-[calc(100dvh-4rem)] flex items-center justify-center">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img
@@ -22,8 +22,7 @@ export function HeroSection() {
             Hotel Pacific Reef
           </h1>
           <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto text-pretty">
-            Experimenta el lujo donde el océano se encuentra con el paraíso. Descubre tu escape perfecto con vistas
-            impresionantes, amenidades de clase mundial y recuerdos inolvidables.
+            Experience luxury at Hotel Pacific Reef with stunning ocean views, premium amenities, and exceptional service.
           </p>
         </div>
 

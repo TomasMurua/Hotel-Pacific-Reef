@@ -96,7 +96,7 @@ export function SearchWidget({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Salida</label>
+          <label className="text-sm font-medium text-gray-700">Check-out</label>
           <DatePicker
             date={checkOut}
             onDateChange={setCheckOut}
@@ -112,7 +112,7 @@ export function SearchWidget({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Adultos</label>
+          <label className="text-sm font-medium text-gray-700">Adults</label>
           <Select value={adults} onValueChange={setAdults}>
             <SelectTrigger>
               <SelectValue />
@@ -120,7 +120,7 @@ export function SearchWidget({
             <SelectContent>
               {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                 <SelectItem key={num} value={num.toString()}>
-                  {num} Adulto{num > 1 ? "s" : ""}
+                  {num} Adult{num > 1 ? "s" : ""}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -128,7 +128,7 @@ export function SearchWidget({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Niños</label>
+          <label className="text-sm font-medium text-gray-700">Children</label>
           <Select value={children} onValueChange={setChildren}>
             <SelectTrigger>
               <SelectValue />
@@ -136,7 +136,7 @@ export function SearchWidget({
             <SelectContent>
               {[0, 1, 2, 3, 4, 5, 6].map((num) => (
                 <SelectItem key={num} value={num.toString()}>
-                  {num} Niño{num > 1 ? "s" : ""}
+                  {num} Child{num > 1 ? "s" : ""}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -158,7 +158,7 @@ export function SearchWidget({
               ) : (
                 <>
                   <Search className="mr-2 h-4 w-4" />
-                  Buscar
+                  Search
                 </>
               )}
             </Button>
@@ -192,7 +192,7 @@ export function SearchWidget({
               ) : (
                 <>
                   <Search className="mr-2 h-4 w-4" />
-                  Buscar
+                  Search
                 </>
               )}
             </Button>
