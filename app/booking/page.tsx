@@ -1,23 +1,33 @@
-"use client"
+"use client";
 
-import { useState, useEffect, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Navbar } from "@/components/navbar"
-import { BookingProgress } from "@/components/booking-progress"
-import { BookingSummary } from "@/components/booking-summary"
-import { Footer } from "@/components/footer"
-import { ArrowLeft, ArrowRight, CreditCard, Check } from "lucide-react"
-import { getMealPlans } from "@/lib/data-service"
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Navbar } from "@/components/navbar";
+import { BookingProgress } from "@/components/booking-progress";
+import { BookingSummary } from "@/components/booking-summary";
+import { Footer } from "@/components/footer";
+import { ArrowLeft, ArrowRight, CreditCard, Check } from "lucide-react";
+import {
+  getMealPlans,
+  createBooking,
+  type BookingData,
+} from "@/lib/data-service";
 
 const guestInfoSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -25,13 +35,13 @@ const guestInfoSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(10, "Please enter a valid phone number"),
   idNumber: z.string().min(5, "Please enter a valid ID number"),
-})
+});
 
 const preferencesSchema = z.object({
   mealPlan: z.string(),
   parking: z.boolean(),
   specialRequests: z.string().optional(),
-})
+});
 
 const paymentSchema = z.object({
   method: z.string().min(1, "Please select a payment method"),
@@ -39,31 +49,32 @@ const paymentSchema = z.object({
   expiryDate: z.string().optional(),
   cvv: z.string().optional(),
   cardholderName: z.string().optional(),
-})
+});
 
-const steps = ["Guest Information", "Preferences", "Payment", "Confirmation"]
+const steps = ["Guest Information", "Preferences", "Payment", "Confirmation"];
 
 function BookingPageContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [mealPlans, setMealPlans] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [mealPlans, setMealPlans] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>("");
 
   // Get booking parameters
-  const roomId = searchParams.get("roomId") || ""
-  const roomName = searchParams.get("roomName") || "Selected Room"
-  const price = Number.parseInt(searchParams.get("price") || "0")
-  const checkIn = searchParams.get("checkIn") || ""
-  const checkOut = searchParams.get("checkOut") || ""
-  const adults = searchParams.get("adults") || "2"
-  const children = searchParams.get("children") || "0"
+  const roomId = searchParams.get("roomId") || "";
+  const roomName = searchParams.get("roomName") || "Selected Room";
+  const price = Number.parseInt(searchParams.get("price") || "0");
+  const checkIn = searchParams.get("checkIn") || "";
+  const checkOut = searchParams.get("checkOut") || "";
+  const adults = searchParams.get("adults") || "2";
+  const children = searchParams.get("children") || "0";
 
   // Form states
-  const [guestInfo, setGuestInfo] = useState({})
-  const [preferences, setPreferences] = useState({})
-  const [payment, setPayment] = useState({})
-  const [bookingId, setBookingId] = useState("")
+  const [guestInfo, setGuestInfo] = useState({});
+  const [preferences, setPreferences] = useState({});
+  const [payment, setPayment] = useState({});
+  const [bookingId, setBookingId] = useState("");
 
   // Forms
   const guestForm = useForm({
@@ -75,7 +86,7 @@ function BookingPageContent() {
       phone: "",
       idNumber: "",
     },
-  })
+  });
 
   const preferencesForm = useForm({
     resolver: zodResolver(preferencesSchema),
@@ -84,7 +95,7 @@ function BookingPageContent() {
       parking: false,
       specialRequests: "",
     },
-  })
+  });
 
   const paymentForm = useForm({
     resolver: zodResolver(paymentSchema),
@@ -95,51 +106,86 @@ function BookingPageContent() {
       cvv: "",
       cardholderName: "",
     },
-  })
+  });
 
   useEffect(() => {
     const fetchMealPlans = async () => {
-      const plans = await getMealPlans()
-      setMealPlans(["No meal plan", ...plans])
-    }
-    fetchMealPlans()
-  }, [])
+      const plans = await getMealPlans();
+      setMealPlans(["No meal plan", ...plans]);
+    };
+    fetchMealPlans();
+  }, []);
 
   const handleNext = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
 
     if (currentStep === 1) {
-      const isValid = await guestForm.trigger()
+      console.log("Validating guest form...");
+      console.log("Form values:", guestForm.getValues());
+      console.log("Form errors:", guestForm.formState.errors);
+
+      const isValid = await guestForm.trigger();
+      console.log("Is valid:", isValid);
+
       if (isValid) {
-        setGuestInfo(guestForm.getValues())
-        setCurrentStep(2)
+        setGuestInfo(guestForm.getValues());
+        setCurrentStep(2);
+      } else {
+        console.log("Validation failed:", guestForm.formState.errors);
       }
     } else if (currentStep === 2) {
-      const isValid = await preferencesForm.trigger()
+      console.log("Validating preferences form...");
+      const isValid = await preferencesForm.trigger();
       if (isValid) {
-        setPreferences(preferencesForm.getValues())
-        setCurrentStep(3)
+        setPreferences(preferencesForm.getValues());
+        setCurrentStep(3);
       }
     } else if (currentStep === 3) {
-      const isValid = await paymentForm.trigger()
+      console.log("Validating payment form...");
+      const isValid = await paymentForm.trigger();
       if (isValid) {
-        setPayment(paymentForm.getValues())
-        // Simulate payment processing
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-        const newBookingId = `HR-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}${String(new Date().getDate()).padStart(2, "0")}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`
-        setBookingId(newBookingId)
-        setCurrentStep(4)
+        const paymentData = paymentForm.getValues();
+        setPayment(paymentData);
+
+        // Create booking data
+        const bookingData: BookingData = {
+          guestInfo: guestInfo as any,
+          preferences: preferences as any,
+          payment: paymentData,
+          bookingDetails: {
+            roomName,
+            price,
+            checkIn,
+            checkOut,
+            adults,
+            children,
+          },
+        };
+
+        console.log("Creating booking with data:", bookingData);
+
+        // Create booking in Supabase
+        const result = await createBooking(bookingData);
+
+        if (result.success && result.bookingId) {
+          setBookingId(result.bookingId);
+          setError(""); // Clear any previous errors
+          setCurrentStep(4);
+        } else {
+          console.error("Failed to create booking:", result.error);
+          setError(`Error creating booking: ${result.error}`);
+        }
       }
     }
 
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -153,68 +199,118 @@ function BookingPageContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    {...guestForm.register("firstName")}
-                    className={guestForm.formState.errors.firstName ? "border-red-500" : ""}
+                  <Controller
+                    name="firstName"
+                    control={guestForm.control}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Input
+                          id="firstName"
+                          {...field}
+                          className={fieldState.error ? "border-red-500" : ""}
+                        />
+                        {fieldState.error && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </>
+                    )}
                   />
-                  {guestForm.formState.errors.firstName && (
-                    <p className="text-red-500 text-sm mt-1">{guestForm.formState.errors.firstName.message}</p>
-                  )}
                 </div>
                 <div>
                   <Label htmlFor="lastName">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    {...guestForm.register("lastName")}
-                    className={guestForm.formState.errors.lastName ? "border-red-500" : ""}
+                  <Controller
+                    name="lastName"
+                    control={guestForm.control}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Input
+                          id="lastName"
+                          {...field}
+                          className={fieldState.error ? "border-red-500" : ""}
+                        />
+                        {fieldState.error && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </>
+                    )}
                   />
-                  {guestForm.formState.errors.lastName && (
-                    <p className="text-red-500 text-sm mt-1">{guestForm.formState.errors.lastName.message}</p>
-                  )}
                 </div>
               </div>
 
               <div>
                 <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...guestForm.register("email")}
-                  className={guestForm.formState.errors.email ? "border-red-500" : ""}
+                <Controller
+                  name="email"
+                  control={guestForm.control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Input
+                        id="email"
+                        type="email"
+                        {...field}
+                        className={fieldState.error ? "border-red-500" : ""}
+                      />
+                      {fieldState.error && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </>
+                  )}
                 />
-                {guestForm.formState.errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{guestForm.formState.errors.email.message}</p>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    {...guestForm.register("phone")}
-                    className={guestForm.formState.errors.phone ? "border-red-500" : ""}
+                  <Controller
+                    name="phone"
+                    control={guestForm.control}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Input
+                          id="phone"
+                          {...field}
+                          className={fieldState.error ? "border-red-500" : ""}
+                        />
+                        {fieldState.error && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </>
+                    )}
                   />
-                  {guestForm.formState.errors.phone && (
-                    <p className="text-red-500 text-sm mt-1">{guestForm.formState.errors.phone.message}</p>
-                  )}
                 </div>
                 <div>
                   <Label htmlFor="idNumber">ID Number *</Label>
-                  <Input
-                    id="idNumber"
-                    {...guestForm.register("idNumber")}
-                    className={guestForm.formState.errors.idNumber ? "border-red-500" : ""}
+                  <Controller
+                    name="idNumber"
+                    control={guestForm.control}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Input
+                          id="idNumber"
+                          {...field}
+                          className={fieldState.error ? "border-red-500" : ""}
+                        />
+                        {fieldState.error && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </>
+                    )}
                   />
-                  {guestForm.formState.errors.idNumber && (
-                    <p className="text-red-500 text-sm mt-1">{guestForm.formState.errors.idNumber.message}</p>
-                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
-        )
+        );
 
       case 2:
         return (
@@ -227,7 +323,9 @@ function BookingPageContent() {
                 <Label htmlFor="mealPlan">Meal Plan</Label>
                 <Select
                   value={preferencesForm.watch("mealPlan")}
-                  onValueChange={(value) => preferencesForm.setValue("mealPlan", value)}
+                  onValueChange={(value) =>
+                    preferencesForm.setValue("mealPlan", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -246,7 +344,9 @@ function BookingPageContent() {
                 <Checkbox
                   id="parking"
                   checked={preferencesForm.watch("parking")}
-                  onCheckedChange={(checked) => preferencesForm.setValue("parking", checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    preferencesForm.setValue("parking", checked as boolean)
+                  }
                 />
                 <Label htmlFor="parking">Parking required (+$15/night)</Label>
               </div>
@@ -262,7 +362,7 @@ function BookingPageContent() {
               </div>
             </CardContent>
           </Card>
-        )
+        );
 
       case 3:
         return (
@@ -278,7 +378,9 @@ function BookingPageContent() {
                 <Label htmlFor="method">Payment Method *</Label>
                 <Select
                   value={paymentForm.watch("method")}
-                  onValueChange={(value) => paymentForm.setValue("method", value)}
+                  onValueChange={(value) =>
+                    paymentForm.setValue("method", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select payment method" />
@@ -290,30 +392,48 @@ function BookingPageContent() {
                   </SelectContent>
                 </Select>
                 {paymentForm.formState.errors.method && (
-                  <p className="text-red-500 text-sm mt-1">{paymentForm.formState.errors.method.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {paymentForm.formState.errors.method.message}
+                  </p>
                 )}
               </div>
 
-              {(paymentForm.watch("method") === "credit" || paymentForm.watch("method") === "debit") && (
+              {(paymentForm.watch("method") === "credit" ||
+                paymentForm.watch("method") === "debit") && (
                 <>
                   <div>
                     <Label htmlFor="cardholderName">Cardholder Name *</Label>
-                    <Input id="cardholderName" {...paymentForm.register("cardholderName")} />
+                    <Input
+                      id="cardholderName"
+                      {...paymentForm.register("cardholderName")}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="cardNumber">Card Number *</Label>
-                    <Input id="cardNumber" placeholder="1234 5678 9012 3456" {...paymentForm.register("cardNumber")} />
+                    <Input
+                      id="cardNumber"
+                      placeholder="1234 5678 9012 3456"
+                      {...paymentForm.register("cardNumber")}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="expiryDate">Expiry Date *</Label>
-                      <Input id="expiryDate" placeholder="MM/YY" {...paymentForm.register("expiryDate")} />
+                      <Input
+                        id="expiryDate"
+                        placeholder="MM/YY"
+                        {...paymentForm.register("expiryDate")}
+                      />
                     </div>
                     <div>
                       <Label htmlFor="cvv">CVV *</Label>
-                      <Input id="cvv" placeholder="123" {...paymentForm.register("cvv")} />
+                      <Input
+                        id="cvv"
+                        placeholder="123"
+                        {...paymentForm.register("cvv")}
+                      />
                     </div>
                   </div>
                 </>
@@ -321,7 +441,9 @@ function BookingPageContent() {
 
               {paymentForm.watch("method") === "transfer" && (
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">Bank Transfer Details</h4>
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    Bank Transfer Details
+                  </h4>
                   <div className="text-sm text-blue-800 space-y-1">
                     <p>Bank: Pacific National Bank</p>
                     <p>Account: Hotel Pacific Reef</p>
@@ -332,7 +454,7 @@ function BookingPageContent() {
               )}
             </CardContent>
           </Card>
-        )
+        );
 
       case 4:
         return (
@@ -341,13 +463,18 @@ function BookingPageContent() {
               <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                 <Check className="h-8 w-8 text-green-600" />
               </div>
-              <CardTitle className="text-2xl text-green-600">Booking Confirmed!</CardTitle>
+              <CardTitle className="text-2xl text-green-600">
+                Booking Confirmed!
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-6">
               <div>
-                <p className="text-lg font-semibold text-gray-900">Booking ID: {bookingId}</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  Booking ID: {bookingId}
+                </p>
                 <p className="text-gray-600">
-                  Your reservation has been confirmed. You will receive a confirmation email shortly.
+                  Your reservation has been confirmed. You will receive a
+                  confirmation email shortly.
                 </p>
               </div>
 
@@ -373,17 +500,20 @@ function BookingPageContent() {
                 </ul>
               </div>
 
-              <Button onClick={() => router.push("/")} className="w-full hotel-gradient text-white">
+              <Button
+                onClick={() => router.push("/")}
+                className="w-full hotel-gradient text-white"
+              >
                 Return to Home
               </Button>
             </CardContent>
           </Card>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -394,11 +524,17 @@ function BookingPageContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => router.back()} className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                onClick={() => router.back()}
+                className="flex items-center space-x-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Back</span>
               </Button>
-              <h1 className="text-2xl font-bold text-gray-900">Complete Your Booking</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Complete Your Booking
+              </h1>
             </div>
           </div>
 
@@ -413,20 +549,37 @@ function BookingPageContent() {
           <div className="lg:col-span-2">
             {renderStepContent()}
 
+            {/* Error Message */}
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
             {/* Navigation Buttons */}
             {currentStep < 4 && (
               <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={handleBack} disabled={currentStep === 1}>
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={currentStep === 1}
+                >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
-                <Button onClick={handleNext} disabled={isLoading} className="hotel-gradient text-white">
+                <Button
+                  onClick={handleNext}
+                  disabled={isLoading}
+                  className="hotel-gradient text-white"
+                >
                   {isLoading ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                   ) : (
                     <>
                       {currentStep === 3 ? "Complete Booking" : "Next"}
-                      {currentStep < 3 && <ArrowRight className="h-4 w-4 ml-2" />}
+                      {currentStep < 3 && (
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      )}
                     </>
                   )}
                 </Button>
@@ -453,7 +606,7 @@ function BookingPageContent() {
 
       <Footer />
     </div>
-  )
+  );
 }
 
 export default function BookingPage() {
@@ -467,5 +620,5 @@ export default function BookingPage() {
     >
       <BookingPageContent />
     </Suspense>
-  )
+  );
 }
