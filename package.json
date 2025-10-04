@@ -6,9 +6,7 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start",
-    "postinstall": "npm run build:css",
-    "build:css": "tailwindcss -i ./app/globals.css -o ./app/output.css --watch=false"
+    "start": "next start"
   },
   "dependencies": {
     "@hookform/resolvers": "latest",
