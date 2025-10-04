@@ -36,12 +36,12 @@ export function Navbar() {
   };
 
   const navItems = [
-    { label: "Inicio", href: "/" },
-    { label: "Habitaciones", href: "/rooms" },
-    { label: "Restaurante", href: "/dining" },
+    { label: "Home", href: "/" },
+    { label: "Rooms", href: "/rooms" },
+    { label: "Restaurant", href: "/dining" },
     { label: "Spa", href: "/spa" },
-    { label: "Eventos", href: "/events" },
-    { label: "Contacto", href: "/contact" },
+    { label: "Events", href: "/events" },
+    { label: "Contact", href: "/contact" },
   ];
 
   return (
@@ -127,7 +127,7 @@ export function Navbar() {
               </div>
             ) : (
               <Button onClick={() => router.push("/login")} variant="outline">
-                Iniciar Sesión
+                Login
               </Button>
             )}
 

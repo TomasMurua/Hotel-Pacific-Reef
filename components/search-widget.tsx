@@ -1,67 +1,89 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { DatePicker } from "@/components/ui/date-picker"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SearchWidgetProps {
-  className?: string
-  variant?: "hero" | "compact"
+  className?: string;
+  variant?: "hero" | "compact";
 }
 
-export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps) {
-  const router = useRouter()
-  const [checkIn, setCheckIn] = useState<Date>()
-  const [checkOut, setCheckOut] = useState<Date>()
-  const [adults, setAdults] = useState("2")
-  const [children, setChildren] = useState("0")
-  const [roomType, setRoomType] = useState("Cualquier tipo de habitación")
-  const [isLoading, setIsLoading] = useState(false)
+export function SearchWidget({
+  className,
+  variant = "hero",
+}: SearchWidgetProps) {
+  const router = useRouter();
+  const [checkIn, setCheckIn] = useState<Date>();
+  const [checkOut, setCheckOut] = useState<Date>();
+  const [adults, setAdults] = useState("2");
+  const [children, setChildren] = useState("0");
+  const [roomType, setRoomType] = useState("Any kind of room");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = async () => {
     if (!checkIn || !checkOut) {
-      alert("Por favor seleccione las fechas de entrada y salida")
-      return
+      alert("Por favor seleccione las fechas de entrada y salida");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     // Simulate search delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const searchParams = new URLSearchParams({
       checkIn: checkIn.toISOString(),
       checkOut: checkOut.toISOString(),
       adults,
       children,
-      ...(roomType !== "Cualquier tipo de habitación" && { roomType }),
-    })
+      ...(roomType !== "Any kind of room" && { roomType }),
+    });
 
-    router.push(`/rooms?${searchParams.toString()}`)
-  }
+    router.push(`/rooms?${searchParams.toString()}`);
+  };
 
-  const isHero = variant === "hero"
+  const isHero = variant === "hero";
 
   return (
-    <Card className={cn("p-6", isHero ? "bg-white/95 backdrop-blur-sm shadow-2xl" : "bg-card", className)}>
+    <Card
+      className={cn(
+        "p-6",
+        isHero ? "bg-white/95 backdrop-blur-sm shadow-2xl" : "bg-card",
+        className
+      )}
+    >
       <div
         className={cn(
           "grid gap-4",
-          isHero ? "grid-cols-1 md:grid-cols-5" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-5",
+          isHero
+            ? "grid-cols-1 md:grid-cols-5"
+            : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
         )}
       >
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Entrada</label>
-          <DatePicker date={checkIn} onDateChange={setCheckIn} placeholder="Seleccionar fecha" className="w-full" />
+          <label className="text-sm font-medium text-gray-700">Check-in</label>
+          <DatePicker
+            date={checkIn}
+            onDateChange={setCheckIn}
+            placeholder="Seleccionar fecha"
+            className="w-full"
+          />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Salida</label>
+          <label className="text-sm font-medium text-gray-700">Check-out</label>
           <DatePicker
             date={checkOut}
             onDateChange={setCheckOut}
@@ -72,7 +94,7 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Adultos</label>
+          <label className="text-sm font-medium text-gray-700">Adults</label>
           <Select value={adults} onValueChange={setAdults}>
             <SelectTrigger>
               <SelectValue />
@@ -80,7 +102,7 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
             <SelectContent>
               {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                 <SelectItem key={num} value={num.toString()}>
-                  {num} Adulto{num > 1 ? "s" : ""}
+                  {num} Adult{num > 1 ? "s" : ""}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -88,7 +110,7 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Niños</label>
+          <label className="text-sm font-medium text-gray-700">Children</label>
           <Select value={children} onValueChange={setChildren}>
             <SelectTrigger>
               <SelectValue />
@@ -96,7 +118,7 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
             <SelectContent>
               {[0, 1, 2, 3, 4, 5, 6].map((num) => (
                 <SelectItem key={num} value={num.toString()}>
-                  {num} Niño{num > 1 ? "s" : ""}
+                  {num} Child{num > 1 ? "s" : ""}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -104,7 +126,9 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
         </div>
 
         <div className={cn("space-y-2", isHero && "md:col-span-1")}>
-          <label className="text-sm font-medium text-gray-700">{isHero ? "Buscar" : "Tipo de Habitación"}</label>
+          <label className="text-sm font-medium text-gray-700">
+            {isHero ? "Search" : "Tipo de Habitación"}
+          </label>
           {isHero ? (
             <Button
               onClick={handleSearch}
@@ -116,7 +140,7 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
               ) : (
                 <>
                   <Search className="mr-2 h-4 w-4" />
-                  Buscar
+                  Search
                 </>
               )}
             </Button>
@@ -126,9 +150,11 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
                 <SelectValue placeholder="Cualquier habitación" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Cualquier tipo de habitación">Cualquier tipo de habitación</SelectItem>
-                <SelectItem value="Room_Type 1">Habitación Estándar</SelectItem>
-                <SelectItem value="Room_Type 2">Habitación Deluxe</SelectItem>
+                <SelectItem value="Cualquier tipo de habitación">
+                  Any kind of room
+                </SelectItem>
+                <SelectItem value="Room_Type 1">Standard room</SelectItem>
+                <SelectItem value="Room_Type 2">Deluxe room</SelectItem>
                 <SelectItem value="Room_Type 3">Suite Junior</SelectItem>
                 <SelectItem value="Room_Type 4">Suite Premium</SelectItem>
               </SelectContent>
@@ -148,7 +174,7 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
               ) : (
                 <>
                   <Search className="mr-2 h-4 w-4" />
-                  Buscar
+                  Search
                 </>
               )}
             </Button>
@@ -156,5 +182,5 @@ export function SearchWidget({ className, variant = "hero" }: SearchWidgetProps)
         )}
       </div>
     </Card>
-  )
+  );
 }

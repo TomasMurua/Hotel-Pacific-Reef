@@ -9,10 +9,10 @@ import { BarChart3, Calendar, Users, Settings, Home, Menu, X, Hotel, CreditCard,
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: BarChart3 },
   { name: "Bookings", href: "/admin/bookings", icon: Calendar },
-  { name: "Guests", href: "/admin/guests", icon: Users },
-  { name: "Revenue", href: "/admin/revenue", icon: CreditCard },
-  { name: "Analytics", href: "/admin/analytics", icon: TrendingUp },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  // { name: "Guests", href: "/admin/guests", icon: Users },
+  // { name: "Revenue", href: "/admin/revenue", icon: CreditCard },
+  // { name: "Analytics", href: "/admin/analytics", icon: TrendingUp },
+  // { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
 
 export function AdminSidebar() {

@@ -9,10 +9,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Hotel Pacific Reef - Resort de Lujo Frente al Océano",
+  title: "Hotel Pacific Reef - Luxury Oceanfront Resort",
   description:
-    "Experimenta el lujo en Hotel Pacific Reef con impresionantes vistas al océano, amenidades premium y servicio excepcional.",
-  generator: "v0.app",
+    "Experience luxury at Hotel Pacific Reef with stunning ocean views, premium amenities, and exceptional service.",
 };
 
 export default function RootLayout({
