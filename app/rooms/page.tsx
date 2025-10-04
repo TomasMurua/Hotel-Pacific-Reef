@@ -229,13 +229,13 @@ function RoomsPageContent() {
                   </div>
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-amber-800">
-                      Fechas requeridas
+                      Required Dates
                     </h3>
                     <div className="mt-2 text-sm text-amber-700">
                       <p>
                         {!checkIn || !checkOut
-                          ? "Por favor seleccione las fechas de entrada y salida para poder reservar una habitación."
-                          : "La fecha de salida debe ser posterior a la fecha de entrada."}
+                          ? "Please select check-in and check-out dates."
+                          : "Check-out date has to be after check-in date."}
                       </p>
                     </div>
                   </div>

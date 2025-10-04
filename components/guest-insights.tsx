@@ -35,7 +35,7 @@ export function GuestInsights() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Insights de Huéspedes</CardTitle>
+          <CardTitle>Guest Insights</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -64,7 +64,7 @@ export function GuestInsights() {
       <CardHeader>
         <CardTitle className="flex items-center">
           <Users className="h-5 w-5 mr-2" />
-          Insights de Huéspedes
+          Guest Insights
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -73,25 +73,25 @@ export function GuestInsights() {
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
               <Repeat className="h-4 w-4 mr-1" />
-              Huéspedes Recurrentes vs Nuevos
+              Returning vs New Guests
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <div className="text-lg font-bold text-green-600">
                   {data.repeatedGuests.repeated.toLocaleString()}
                 </div>
-                <div className="text-xs text-green-600">Recurrentes</div>
+                <div className="text-xs text-green-600">Returning</div>
                 <div className="text-xs text-gray-500">
-                  {repeatGuestPercentage}% del total
+                  {repeatGuestPercentage}% of total
                 </div>
               </div>
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <div className="text-lg font-bold text-blue-600">
                   {data.repeatedGuests.new.toLocaleString()}
                 </div>
-                <div className="text-xs text-blue-600">Nuevos</div>
+                <div className="text-xs text-blue-600">New</div>
                 <div className="text-xs text-gray-500">
-                  {100 - repeatGuestPercentage}% del total
+                  {100 - repeatGuestPercentage}% of total
                 </div>
               </div>
             </div>
@@ -101,7 +101,7 @@ export function GuestInsights() {
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
               <TrendingUp className="h-4 w-4 mr-1" />
-              Principales Segmentos de Mercado
+              Top Market Segments
             </h4>
             <div className="space-y-2">
               {data.marketSegments
@@ -143,17 +143,17 @@ export function GuestInsights() {
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
               <Clock className="h-4 w-4 mr-1" />
-              Tiempo de Anticipación
+              Lead Time
             </h4>
             <div className="space-y-2">
               {data.leadTimeDistribution
                 .sort((a, b) => {
                   // Custom sort order for lead time ranges
                   const order = [
-                    "0-7 días",
-                    "8-30 días",
-                    "31-90 días",
-                    "91+ días",
+                    "0-7 days",
+                    "8-30 days",
+                    "31-90 days",
+                    "91+ days",
                   ];
                   return order.indexOf(a.range) - order.indexOf(b.range);
                 })

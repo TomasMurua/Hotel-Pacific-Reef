@@ -130,10 +130,10 @@ export interface ReservationLogic {
 
 // Estados de reserva específicos del hotel
 export interface ReservationStates {
-  Not_Canceled: "Confirmada - Activa";
-  Canceled: "Cancelada";
-  Check_In: "Huésped en hotel";
-  Check_Out: "Completada";
+  Not_Canceled: "Confirmed - Active";
+  Canceled: "Canceled";
+  Check_In: "In Progress";
+  Check_Out: "Completed";
 }
 
 // Validaciones de reserva

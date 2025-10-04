@@ -180,7 +180,7 @@ export function RoomCard({
             {isLoading ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
             ) : isDisabled ? (
-              "Seleccionar fechas primero"
+              "Dates required"
             ) : (
               "Select Room"
             )}

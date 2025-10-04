@@ -107,7 +107,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/20 mt-12 pt-8 text-center text-white/60">
-          <p>&copy; 2024 Hotel Pacific Reef. All rights reserved. | Privacy Policy | Terms of Service</p>
+          <p>&copy; {new Date().getFullYear()} Hotel Pacific Reef. All rights reserved. | Privacy Policy | Terms of Service</p>
         </div>
       </div>
     </footer>

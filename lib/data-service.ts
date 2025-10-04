@@ -225,7 +225,7 @@ export async function getRoomTypePerformance(): Promise<
 
   return Object.entries(roomTypeData)
     .map(([roomType, data]) => ({
-      roomType: roomType.replace("Room_Type ", "Habitación "),
+      roomType: roomType.replace("Room_Type ", "Room "),
       revenue: Math.round(data.revenue),
       bookings: data.bookings,
       avgPrice: Math.round(data.totalPrice / data.bookings),
@@ -273,10 +273,10 @@ export async function getGuestDemographics(): Promise<{
     .filter((d) => d.lead_time > 0 && d.lead_time < 365)
     .reduce((acc, curr) => {
       let bucket: string;
-      if (curr.lead_time <= 7) bucket = "0-7 días";
-      else if (curr.lead_time <= 30) bucket = "8-30 días";
-      else if (curr.lead_time <= 90) bucket = "31-90 días";
-      else bucket = "91+ días";
+      if (curr.lead_time <= 7) bucket = "0-7 days";
+      else if (curr.lead_time <= 30) bucket = "8-30 days";
+      else if (curr.lead_time <= 90) bucket = "31-90 days";
+      else bucket = "91+ days";
 
       acc[bucket] = (acc[bucket] || 0) + 1;
       return acc;
@@ -342,17 +342,17 @@ export async function getRecentBookings(limit: number = 10): Promise<
         bookingId: booking.Booking_ID,
         roomType: booking.room_type_reserved.replace(
           "Room_Type ",
-          "Habitación "
+          "Room "
         ),
         checkIn: checkInDate.toLocaleDateString("es-ES"),
         checkOut: checkOutDate.toLocaleDateString("es-ES"),
         guests: booking.no_of_adults + booking.no_of_children,
         status:
           booking.booking_status === "Check-Out"
-            ? "Completada"
+            ? "Completed"
             : booking.booking_status === "Canceled"
-            ? "Cancelada"
-            : "Activa",
+            ? "Canceled"
+            : "Active",
         revenue: Math.round(
           booking.avg_price_per_room *
             (booking.no_of_weekend_nights + booking.no_of_week_nights)

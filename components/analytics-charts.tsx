@@ -185,7 +185,7 @@ export function AnalyticsCharts() {
       {/* Lead Time Distribution */}
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle>Distribución de Tiempo de Anticipación</CardTitle>
+          <CardTitle>Lead Time Distribution</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>

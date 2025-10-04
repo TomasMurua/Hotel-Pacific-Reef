@@ -127,32 +127,32 @@ function AdminDashboardContent() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <TrendingUp className="h-5 w-5 mr-2" />
-                    Estadísticas del Hotel
+                    Hotel Statistics
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">
-                        Total de Reservas
+                        Total Bookings
                       </span>
                       <span className="font-semibold">36,275</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">
-                        Habitaciones Totales
+                        Total Rooms
                       </span>
                       <span className="font-semibold">38</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">
-                        Tipos de Habitación
+                        Room Types
                       </span>
                       <span className="font-semibold">7</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">
-                        Período de Datos
+                        Data Period
                       </span>
                       <span className="font-semibold">2015-2017</span>
                     </div>
@@ -161,7 +161,7 @@ function AdminDashboardContent() {
                         <div className="text-lg font-bold text-blue-600">
                           30
                         </div>
-                        <div className="text-xs text-blue-600">Turista</div>
+                        <div className="text-xs text-blue-600">Tourist</div>
                       </div>
                       <div className="text-center p-3 bg-purple-50 rounded-lg">
                         <div className="text-lg font-bold text-purple-600">

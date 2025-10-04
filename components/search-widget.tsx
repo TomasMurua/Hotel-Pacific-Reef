@@ -29,7 +29,7 @@ export function SearchWidget({
   const [checkOut, setCheckOut] = useState<Date>();
   const [adults, setAdults] = useState("2");
   const [children, setChildren] = useState("0");
-  const [roomType, setRoomType] = useState("Cualquier tipo de habitación");
+  const [roomType, setRoomType] = useState("Any room");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -55,7 +55,7 @@ export function SearchWidget({
       checkOut: checkOut.toISOString(),
       adults,
       children,
-      ...(roomType !== "Cualquier tipo de habitación" && { roomType }),
+      ...(roomType !== "Any room" && { roomType }),
     });
 
     router.push(`/rooms?${searchParams.toString()}`);
@@ -80,7 +80,7 @@ export function SearchWidget({
         )}
       >
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Entrada</label>
+          <label className="text-sm font-medium text-gray-700">Check-in</label>
           <DatePicker
             date={checkIn}
             onDateChange={(date) => {
@@ -90,7 +90,7 @@ export function SearchWidget({
                 setCheckOut(undefined);
               }
             }}
-            placeholder="Seleccionar fecha"
+            placeholder="Select date"
             className="w-full"
           />
         </div>
@@ -100,7 +100,7 @@ export function SearchWidget({
           <DatePicker
             date={checkOut}
             onDateChange={setCheckOut}
-            placeholder="Seleccionar fecha"
+            placeholder="Select date"
             className="w-full"
             disabled={!checkIn}
             minDate={
@@ -145,7 +145,7 @@ export function SearchWidget({
 
         <div className={cn("space-y-2", isHero && "md:col-span-1")}>
           <label className="text-sm font-medium text-gray-700">
-            {isHero ? "Buscar" : "Tipo de Habitación"}
+            {isHero ? "Search" : "Room Type"}
           </label>
           {isHero ? (
             <Button
@@ -165,14 +165,14 @@ export function SearchWidget({
           ) : (
             <Select value={roomType} onValueChange={setRoomType}>
               <SelectTrigger>
-                <SelectValue placeholder="Cualquier habitación" />
+                <SelectValue placeholder="Any room" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Cualquier tipo de habitación">
-                  Cualquier tipo de habitación
+                <SelectItem value="Any room">
+                  Any room
                 </SelectItem>
-                <SelectItem value="Room_Type 1">Habitación Estándar</SelectItem>
-                <SelectItem value="Room_Type 2">Habitación Deluxe</SelectItem>
+                <SelectItem value="Room_Type 1">Standard Room</SelectItem>
+                <SelectItem value="Room_Type 2">Deluxe Room</SelectItem>
                 <SelectItem value="Room_Type 3">Suite Junior</SelectItem>
                 <SelectItem value="Room_Type 4">Suite Premium</SelectItem>
               </SelectContent>

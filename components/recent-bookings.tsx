@@ -37,14 +37,12 @@ export function RecentBookings() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Completada":
-        return (
-          <Badge className="bg-green-100 text-green-800">Completada</Badge>
-        );
-      case "Activa":
-        return <Badge className="bg-blue-100 text-blue-800">Activa</Badge>;
-      case "Cancelada":
-        return <Badge variant="destructive">Cancelada</Badge>;
+      case "Completed":
+        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+      case "Active":
+        return <Badge className="bg-blue-100 text-blue-800">Active</Badge>;
+      case "Cancelled":
+        return <Badge variant="destructive">Cancelled</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -54,7 +52,7 @@ export function RecentBookings() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Reservas Recientes</CardTitle>
+          <CardTitle>Recent Bookings</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -75,15 +73,13 @@ export function RecentBookings() {
       <CardHeader>
         <CardTitle className="flex items-center">
           <Calendar className="h-5 w-5 mr-2" />
-          Reservas Recientes
+          Recent Bookings
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {bookings.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">
-              No hay reservas recientes
-            </p>
+            <p className="text-gray-500 text-center py-4">No recent bookings</p>
           ) : (
             bookings.map((booking) => (
               <div
@@ -104,7 +100,7 @@ export function RecentBookings() {
                     </span>
                     <span className="flex items-center">
                       <Users className="h-3 w-3 mr-1" />
-                      {booking.guests} huésped{booking.guests > 1 ? "es" : ""}
+                      {booking.guests} guest{booking.guests > 1 ? "s" : ""}
                     </span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
